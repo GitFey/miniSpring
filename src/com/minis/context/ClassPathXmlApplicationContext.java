@@ -10,13 +10,13 @@ import com.minis.core.Resource;
  * 工作流程为 ： 先解析XML文件中的内容，再进行实例化及加载
  * */
 public class ClassPathXmlApplicationContext implements BeanFactory {
-    BeanFactory beanFactory;
+    SimpleBeanFactory beanFactory;
     //context负责整合容器的启动过程，读外部配置，解析Bean定义，创建BeanFactory
     public ClassPathXmlApplicationContext(String fileName) {
         //1. 解析 XML 文件中的内容。
         Resource resource = new ClassPathXmlResource(fileName);
         //2. 先定义一个BeanFactory变量
-        BeanFactory beanFactory = new SimpleBeanFactory();
+        SimpleBeanFactory beanFactory = new SimpleBeanFactory();
         //3.XmlBeanDefinitionReader会将XML 文件中的内容转化成我们需要的BeanDefinition并注册
         XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
         reader.loadBeanDefinitions(resource);
@@ -27,8 +27,12 @@ public class ClassPathXmlApplicationContext implements BeanFactory {
     public Object getBean(String beanName) throws BeansException {
         return this.beanFactory.getBean(beanName);
     }
-    //注入到 BeanFactory 容器
-    public void registerBeanDefinition(BeanDefinition beanDefinition) {
-        this.beanFactory.registerBeanDefinition(beanDefinition);
+
+
+    public Boolean containsBean(String name) {
+        return this.beanFactory.containsBean(name);
+    }
+    public void registerBean(String beanName, Object obj) {
+        this.beanFactory.registerBean(beanName, obj);
     }
 }

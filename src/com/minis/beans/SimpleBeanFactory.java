@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * 一个简单的bean工厂实现类，同样有注册和get两个功能
  *主要有三个实例域 ：
@@ -11,47 +13,49 @@ import java.util.Map;
  * 2.beanNames，是一个字符串列表，存了所有bean的名字
  * 3.singletons，哈希表，key为bean的名字，value为bean实例
  * */
-public class SimpleBeanFactory implements BeanFactory{
-    private List<BeanDefinition> beanDefinitions = new ArrayList<>();
-    private List<String> beanNames = new ArrayList<>();
-    private Map<String, Object> singletons = new HashMap<>();
+public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements BeanFactory{
+    private Map<String, BeanDefinition> beanDefinitions = new ConcurrentHashMap<>(256);
+    //beanName和singletons在父级定义了，这里就删掉了
+
     public SimpleBeanFactory() {
     }
 
     //getBean，容器的核心方法
     public Object getBean(String beanName) throws BeansException {
-        //先尝试直接拿Bean实例
-        Object singleton = singletons.get(beanName);
-        //如果此时还没有这个Bean的实例，则获取它的定义来创建实例
+        //先尝试直接拿bean实例
+        Object singleton = this.getSingleton(beanName);
+        //如果此时还没有这个bean的实例，则获取它的定义来创建实例
         if (singleton == null) {
-            //看name有没有被注册
-            int i = beanNames.indexOf(beanName);
-            if (i == -1) {
-                throw new BeansException();
+            //获取bean的定义
+            BeanDefinition beanDefinition = beanDefinitions.get(beanName);
+            if (beanDefinition == null) {
+                throw new BeansException("No bean.");
+            } try {
+                singleton = Class.forName(beanDefinition.getClassName()).newInstance();
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            } catch (InstantiationException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
-            else {
-                //获取Bean的定义
-                BeanDefinition beanDefinition = beanDefinitions.get(i);
-                try {
-                    singleton = Class.forName(beanDefinition.getClassName()).newInstance();
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                } catch (InstantiationException e) {
-                    throw new RuntimeException(e);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-                //Bean实例
-                singletons.put(beanDefinition.getId(), singleton);
-            }
+            //新注册这个bean实例
+            this.registerSingleton(beanName, singleton);
         }
         return singleton;
     }
+    //接口新增方法，注册 ，前面Beanfactory接口中改了新名字
+    public void registerBean(String beanName, Object obj) {
+        this.registerSingleton(beanName, obj);
+    }
+    //接口新增方法，检查是否存在bean
+    public Boolean containsBean(String name) {
+        return containsSingleton(name);
+    }
     /**
-     * 注册
+     * 注册,遗留方法
      * */
     public void registerBeanDefinition(BeanDefinition beanDefinition) {
-        this.beanDefinitions.add(beanDefinition);
-        this.beanNames.add(beanDefinition.getId());
+        this.beanDefinitions.put(beanDefinition.getId(), beanDefinition);
     }
 }
