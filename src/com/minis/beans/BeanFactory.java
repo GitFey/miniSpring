@@ -7,5 +7,6 @@ public interface BeanFactory {
      * 2.根据id获取bean
      * */
     Object getBean(String beanName) throws BeansException;
-    void registerBeanDefinition(BeanDefinition beanDefinition);
+    Boolean containsBean(String name);
+    void registerBean(String beanName, Object obj);
 }

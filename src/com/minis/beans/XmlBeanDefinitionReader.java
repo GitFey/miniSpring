@@ -6,22 +6,22 @@ import org.dom4j.Element;
  * 这里是将在ClassPathXmlResource中解析好的xml转换成bean
  * */
 public class XmlBeanDefinitionReader {
-    BeanFactory bf;
-    public XmlBeanDefinitionReader(BeanFactory bf) {
-        this.bf = bf;
+    //原来实例域是BeanFactory，现在改成SimpleBeanFactory
+    SimpleBeanFactory simpleBeanFactory;
+
+    public XmlBeanDefinitionReader(SimpleBeanFactory simpleBeanFactory) {
+        this.simpleBeanFactory = simpleBeanFactory;
     }
-    public void loadBeanDefinitions(Resource res) {
-        while (res.hasNext()) {
-            Element element = (Element)res.next();
+
+    public void loadBeanDefinitions(Resource resource) {
+        while (resource.hasNext()) {
+            Element element = (Element) resource.next();
             String beanID = element.attributeValue("id");
             String beanClassName = element.attributeValue("class");
-            BeanDefinition beanDefinition = new BeanDefinition(beanID,beanClassName);
-            //注册
-            this.bf.registerBeanDefinition(beanDefinition);
+            BeanDefinition beanDefinition = new BeanDefinition(beanID, beanClassName);
+            this.simpleBeanFactory.registerBeanDefinition(beanDefinition);
         }
-
     }
-
 
 
 }
