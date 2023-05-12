@@ -10,7 +10,7 @@ public interface BeanFactory {
     Boolean containsBean(String name);
 
     /**
-     * registerBean方法在拓展beanfactory接口时取消
+     * registerBean方法在拓展beanfactory接口时取消,在BeanDefinitionRegister中实现
      * @param beanName
      * @param obj
      */
