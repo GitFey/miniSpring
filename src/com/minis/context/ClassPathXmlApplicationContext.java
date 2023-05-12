@@ -9,7 +9,7 @@ import com.minis.core.Resource;
  * 实例域为BeanFactory
  * 工作流程为 ： 先解析XML文件中的内容，再进行实例化及加载
  * */
-public class ClassPathXmlApplicationContext implements BeanFactory {
+public class ClassPathXmlApplicationContext implements BeanFactory ,ApplicationEventPublisher{
     SimpleBeanFactory beanFactory;
     //context负责整合容器的启动过程，读外部配置，解析Bean定义，创建BeanFactory
     public ClassPathXmlApplicationContext(String fileName) {
@@ -32,7 +32,32 @@ public class ClassPathXmlApplicationContext implements BeanFactory {
     public Boolean containsBean(String name) {
         return this.beanFactory.containsBean(name);
     }
+
+
     public void registerBean(String beanName, Object obj) {
         this.beanFactory.registerBean(beanName, obj);
     }
+
+    @Override
+    public void publishEvent(ApplicationEvent event) {
+    }
+
+    @Override
+    public boolean isSingleton(String name) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isPrototype(String name) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public Class<?> getType(String name) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

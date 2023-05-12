@@ -40,5 +40,29 @@ public class BeanDefinition {
     public void setId(String id) {
         this.id = id;
     }
+
+    public boolean isSingleton() {
+        return SCOPE_SINGLETON.equals(scope);
+    }
+
+    public boolean isPrototype() {
+        return SCOPE_PROTOTYPE.equals(scope);
+    }
+
+    public void setLazyInit(boolean lazyInit) {
+        this.lazyInit = lazyInit;
+    }
+
+    public boolean isLazyInit() {
+        return this.lazyInit;
+    }
+
+    public void setDependsOn(String... dependsOn) {
+        this.dependsOn = dependsOn;
+    }
+
+    public String getInitMethodName() {
+        return this.initMethodName;
+    }
 }
 

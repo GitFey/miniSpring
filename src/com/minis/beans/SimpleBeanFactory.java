@@ -13,8 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * 2.beanNames，是一个字符串列表，存了所有bean的名字
  * 3.singletons，哈希表，key为bean的名字，value为bean实例
  * */
-public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements BeanFactory{
-    private Map<String, BeanDefinition> beanDefinitions = new ConcurrentHashMap<>(256);
+public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements BeanFactory,BeanDefinitionRegistry{
+    private Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
+    private List<String> beanDefinitionNames = new ArrayList<>();
+
     //beanName和singletons在父级定义了，这里就删掉了
 
     public SimpleBeanFactory() {
@@ -27,7 +29,7 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
         //如果此时还没有这个bean的实例，则获取它的定义来创建实例
         if (singleton == null) {
             //获取bean的定义
-            BeanDefinition beanDefinition = beanDefinitions.get(beanName);
+            BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
             if (beanDefinition == null) {
                 throw new BeansException("No bean.");
             } try {
@@ -44,18 +46,67 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
         }
         return singleton;
     }
-    //接口新增方法，注册 ，前面Beanfactory接口中改了新名字
-    public void registerBean(String beanName, Object obj) {
-        this.registerSingleton(beanName, obj);
-    }
+
     //接口新增方法，检查是否存在bean
     public Boolean containsBean(String name) {
         return containsSingleton(name);
     }
+
+
+    public boolean isSingleton(String name) {
+        return this.beanDefinitionMap.get(name).isSingleton();
+    }
+
+
+    public boolean isPrototype(String name) {
+        return false;
+    }
+
+
+    public Class<?> getType(String name) {
+        return null;
+    }
+
+    /**
+     * 以下方法在拓展bean时新增
+     * @param name
+     * @param beanDefinition
+     */
+    @Override
+    public void registerBeanDefinition(String name, BeanDefinition beanDefinition) {
+        this.beanDefinitionMap.put(name, beanDefinition);
+        this.beanDefinitionNames.add(name);
+        if (!beanDefinition.isLazyInit()) {
+            try {
+                getBean(name);
+            } catch (BeansException e) {
+            }
+        }
+    }
+    public void registerBean(String beanName, Object obj) {
+        this.registerSingleton(beanName, obj);
+
+    }
+
+    @Override
+    public void removeBeanDefinition(String name) {
+
+    }
+
+    @Override
+    public BeanDefinition getBeanDefinition(String name) {
+        return null;
+    }
+
+    @Override
+    public boolean containsBeanDefinition(String name) {
+        return false;
+    }
+
     /**
      * 注册,遗留方法
      * */
-    public void registerBeanDefinition(BeanDefinition beanDefinition) {
-        this.beanDefinitions.put(beanDefinition.getId(), beanDefinition);
-    }
+//    public void registerBeanDefinition(BeanDefinition beanDefinition) {
+//        this.beanDefinitions.put(beanDefinition.getId(), beanDefinition);
+//    }
 }
