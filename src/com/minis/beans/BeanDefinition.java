@@ -17,8 +17,11 @@ public class BeanDefinition {
     private String[] dependsOn; //记录 Bean 之间的依赖关系
     private String initMethodName;  //初始化方法的声明
     private volatile Object beanClass;
-//    private ArgumentValues constructorArgumentValues; //构造器参数列表
-//    private PropertyValues propertyValues; //构造器属性列表
+    /**
+     * constructorArgumentValues 和 propertyValues ： 20230517实现依赖注入时新增
+     */
+    private ArgumentValues constructorArgumentValues; //构造器参数列表
+    private PropertyValues propertyValues; //构造器属性列表
 
     public BeanDefinition(String id,String className){
         this.id = id;
@@ -64,5 +67,30 @@ public class BeanDefinition {
     public String getInitMethodName() {
         return this.initMethodName;
     }
+
+    public void setConstructorArgumentValues(ArgumentValues constructorArgumentValues) {
+        this.constructorArgumentValues =
+                (constructorArgumentValues != null ? constructorArgumentValues : new ArgumentValues());
+    }
+
+    public ArgumentValues getConstructorArgumentValues() {
+        return this.constructorArgumentValues;
+    }
+
+    public boolean hasConstructorArgumentValues() {
+        return !this.constructorArgumentValues.isEmpty();
+    }
+    public void setPropertyValues(PropertyValues propertyValues) {
+        this.propertyValues = (propertyValues != null ? propertyValues : new PropertyValues());
+    }
+
+    public PropertyValues getPropertyValues() {
+        return this.propertyValues;
+    }
+    public void setInitMethodName(String initMethodName) {
+        this.initMethodName = initMethodName;
+    }
+
+
 }
 
