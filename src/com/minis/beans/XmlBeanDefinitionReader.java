@@ -30,7 +30,7 @@ public class XmlBeanDefinitionReader {
                 String pType = e.attributeValue("type");
                 String pName = e.attributeValue("name");
                 String pValue = e.attributeValue("value");
-                PVS.addPropertyValue(new PropertyValue(pType, pName, pValue));
+                PVS.addPropertyValue(new PropertyValue(pType, pName, pValue, true));
             }
             beanDefinition.setPropertyValues(PVS);
             //end of handle properties
