@@ -3,10 +3,7 @@ package com.minis.beans;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -26,7 +23,14 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
     public SimpleBeanFactory() {
     }
 
-    //getBean，容器的核心方法
+    /**getBean ： 容器的核心方法
+     * 1.try to get bean
+     * 2.   if no bean : (1)get beanDefinition (2)createBean  (3)registerBean
+     * 3.return singleton bean
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
     public Object getBean(String beanName) throws BeansException {
         //先尝试直接拿bean实例
         Object singleton = this.getSingleton(beanName);
@@ -34,17 +38,7 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
         if (singleton == null) {
             //获取bean的定义
             BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
-            if (beanDefinition == null) {
-                throw new BeansException("No bean.");
-            } try {
-                singleton = Class.forName(beanDefinition.getClassName()).newInstance();
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            } catch (InstantiationException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
+            singleton = createBean(beanDefinition);
             //新注册这个bean实例
             this.registerSingleton(beanName, singleton);
         }
@@ -99,7 +93,7 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
 
     @Override
     public BeanDefinition getBeanDefinition(String name) {
-        return null;
+        return this.beanDefinitionMap.get(name);
     }
 
     @Override
@@ -108,6 +102,16 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
     }
 
 
+
+
+
+
+
+    /**
+     * creatBean ：1.doCreateBean()  2.handleProperties()
+     * @param bd
+     * @return
+     */
     private Object createBean(BeanDefinition bd) {
         Class<?> clz = null;
         Object obj = doCreateBean(bd);
@@ -131,13 +135,16 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
         Constructor<?> con = null;
 
         try {
+            //class.forName : ask JVM find and load the class
             clz = Class.forName(bd.getClassName());
 
-            //handle constructor
+            //handle constructor : argumentValues store in ArgumentValues
             ArgumentValues argumentValues = bd.getConstructorArgumentValues();
             if (!argumentValues.isEmpty()) {
+                // new 2 lists （of types and values in ArgumentValues） by those size
                 Class<?>[] paramTypes = new Class<?>[argumentValues.getArgumentCount()];
                 Object[] paramValues =   new Object[argumentValues.getArgumentCount()];
+                //依次根据constructor中的类型和值来构造paramTypes与paramValues
                 for (int i=0; i<argumentValues.getArgumentCount(); i++) {
                     ArgumentValue argumentValue = argumentValues.getIndexedArgumentValue(i);
                     if ("String".equals(argumentValue.getType()) || "java.lang.String".equals(argumentValue.getType())) {
@@ -157,6 +164,7 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
                         paramValues[i] = argumentValue.getValue();
                     }
                 }
+//                System.out.println(Arrays.toString(Arrays.stream(paramTypes).toArray()));
                 try {
                     con = clz.getConstructor(paramTypes);
                     obj = con.newInstance(paramValues);
