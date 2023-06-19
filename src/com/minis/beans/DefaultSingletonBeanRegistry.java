@@ -14,8 +14,15 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
     public void registerSingleton(String beanName, Object singletonObject) {
         //关键字 synchronized,保证多线程下正常
         synchronized (this.singletons) {
+            Object oldObject = this.singletons.get(beanName);
+            if (oldObject != null) {
+                throw new IllegalStateException("Could not register object [" + singletonObject +
+                        "] under bean name '" + beanName + "': there is already object [" + oldObject + "] bound");
+            }
+
             this.singletons.put(beanName, singletonObject);
             this.beanNames.add(beanName);
+            System.out.println(" bean registerded............. " + beanName);
         }
     }
     public Object getSingleton(String beanName) {

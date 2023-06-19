@@ -23,6 +23,15 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
     public SimpleBeanFactory() {
     }
 
+    public void refresh() {
+        for (String beanName : beanDefinitionNames) {
+            try {
+                getBean(beanName);
+            } catch (BeansException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     /**getBean ： 容器的核心方法
      * 1.try to get bean
      * 2.   if no bean : (1)get beanDefinition (2)createBean  (3)registerBean
@@ -34,15 +43,23 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
     public Object getBean(String beanName) throws BeansException {
         //先尝试直接拿bean实例
         Object singleton = this.getSingleton(beanName);
-        //如果此时还没有这个bean的实例，则获取它的定义来创建实例
         if (singleton == null) {
-            //获取bean的定义
-            BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
-            singleton = createBean(beanDefinition);
-            //新注册这个bean实例
-            this.registerSingleton(beanName, singleton);
+            singleton = this.earlySingletonObjects.get(beanName);
+            //如果此时还没有这个bean的实例，则获取它的定义来创建实例
+            if (singleton == null) {
+                //获取bean的定义
+                BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
+                singleton = createBean(beanDefinition);
+                //新注册这个bean实例
+                this.registerSingleton(beanName, singleton);
+            }
+            return singleton;
+        }
+        if (singleton == null){
+            throw new BeansException("bean is null");
         }
         return singleton;
+
     }
 
     //接口新增方法，检查是否存在bean
@@ -57,12 +74,12 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
 
 
     public boolean isPrototype(String name) {
-        return false;
+        return this.beanDefinitionMap.get(name).isPrototype();
     }
 
 
     public Class<?> getType(String name) {
-        return null;
+        return this.beanDefinitionMap.get(name).getClass();
     }
 
     /**
@@ -88,7 +105,9 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
 
     @Override
     public void removeBeanDefinition(String name) {
-
+        this.beanDefinitionMap.remove(name);
+        this.beanDefinitionNames.remove(name);
+        this.removeSingleton(name);
     }
 
     @Override
@@ -98,7 +117,7 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
 
     @Override
     public boolean containsBeanDefinition(String name) {
-        return false;
+        return this.beanDefinitionMap.containsKey(name);
     }
 
 
