@@ -6,6 +6,7 @@ public class AServiceImpl implements com.minis.test.AService {
     private int level;
     private String property1;
     private String property2;
+    private BaseService ref1;
 
     public AServiceImpl() {
     }
@@ -33,6 +34,14 @@ public class AServiceImpl implements com.minis.test.AService {
     public void setProperty2(String property2) {
         this.property2 = property2;
     }
+    public BaseService getRef1() {
+        return ref1;
+    }
+
+    public void setRef1(BaseService bs) {
+        this.ref1 = bs;
+    }
+
 
 //    public void sayHello() {
 //        System.out.println("a service 1 say hello");

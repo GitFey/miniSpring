@@ -13,7 +13,7 @@ public class BeanDefinition {
     String SCOPE_SINGLETON = "singleton"; //单例
     String SCOPE_PROTOTYPE = "prototype"; //原型
     private String scope = SCOPE_SINGLETON;
-    private boolean lazyInit = false;  //表示 Bean 要不要在加载的时候初始化
+    private boolean lazyInit = true;  //表示 Bean 要不要在加载的时候初始化
     private String[] dependsOn; //记录 Bean 之间的依赖关系
     private String initMethodName;  //初始化方法的声明
     private volatile Object beanClass;
