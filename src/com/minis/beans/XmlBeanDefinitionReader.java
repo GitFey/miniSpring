@@ -24,6 +24,18 @@ public class XmlBeanDefinitionReader {
             String beanClassName = element.attributeValue("class");
             BeanDefinition beanDefinition = new BeanDefinition(beanID, beanClassName);
 
+            //get constructor
+            List<Element> constructorElements = element.elements("constructor-arg");
+            ArgumentValues AVS = new ArgumentValues();
+            for (Element e : constructorElements) {
+                String pType = e.attributeValue("type");
+                String pName = e.attributeValue("name");
+                String pValue = e.attributeValue("value");
+                AVS.addArgumentValue(new ArgumentValue(pValue,pType,pName));
+            }
+            beanDefinition.setConstructorArgumentValues(AVS);
+            //end of handle constructor
+
             //handle properties
             List<Element> propertyElements = element.elements("property");
             PropertyValues PVS = new PropertyValues();
@@ -43,24 +55,16 @@ public class XmlBeanDefinitionReader {
                     pV = pRef;
                     refs.add(pRef);
                 }
-                PVS.addPropertyValue(new PropertyValue(pType, pName, pValue, isRef));
+                PVS.addPropertyValue(new PropertyValue(pType, pName, pV, isRef));
             }
             beanDefinition.setPropertyValues(PVS);
+
+            String[] refArray = refs.toArray(new String[0]);
+            beanDefinition.setDependsOn(refArray);
             //end of handle properties
 
-            //get constructor
-            List<Element> constructorElements = element.elements("constructor-arg");
-            ArgumentValues AVS = new ArgumentValues();
-            for (Element e : constructorElements) {
-                String pType = e.attributeValue("type");
-                String pName = e.attributeValue("name");
-                String pValue = e.attributeValue("value");
-                AVS.addArgumentValue(new ArgumentValue(pValue,pType,pName));
-            }
-            beanDefinition.setConstructorArgumentValues(AVS);
-            //end of handle constructor
-
             this.simpleBeanFactory.registerBeanDefinition(beanID,beanDefinition);
+            System.out.println(beanID + "创建成功 ！");
         }
     }
 

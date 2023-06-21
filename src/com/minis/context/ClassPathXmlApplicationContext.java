@@ -12,7 +12,10 @@ import com.minis.core.Resource;
 public class ClassPathXmlApplicationContext implements BeanFactory ,ApplicationEventPublisher{
     SimpleBeanFactory beanFactory;
     //context负责整合容器的启动过程，读外部配置，解析Bean定义，创建BeanFactory
-    public ClassPathXmlApplicationContext(String fileName) {
+    public ClassPathXmlApplicationContext(String fileName){
+        this(fileName, true);
+    }
+    public ClassPathXmlApplicationContext(String fileName,boolean isRefresh) {
         //1. 解析 XML 文件中的内容。
         Resource resource = new ClassPathXmlResource(fileName);
         //2. 先定义一个BeanFactory变量
@@ -22,6 +25,9 @@ public class ClassPathXmlApplicationContext implements BeanFactory ,ApplicationE
         reader.loadBeanDefinitions(resource);
         //搞完咯
         this.beanFactory = beanFactory;
+        if (isRefresh) {
+            this.beanFactory.refresh();
+        }
     }
     //context再对外提供一个getBean，底下就是调用的BeanFactory对应的方法
     public Object getBean(String beanName) throws BeansException {
