@@ -23,6 +23,9 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
     public SimpleBeanFactory() {
     }
 
+    /**
+     * 更新方法，
+     */
     public void refresh() {
         for (String beanName : beanDefinitionNames) {
             try {
