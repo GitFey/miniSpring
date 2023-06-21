@@ -1,6 +1,9 @@
 package com.minis.context;
 
 import com.minis.beans.*;
+import com.minis.beans.factory.BeanFactory;
+import com.minis.beans.factory.support.SimpleBeanFactory;
+import com.minis.beans.factory.xml.XmlBeanDefinitionReader;
 import com.minis.core.ClassPathXmlResource;
 import com.minis.core.Resource;
 
@@ -9,7 +12,7 @@ import com.minis.core.Resource;
  * 实例域为BeanFactory
  * 工作流程为 ： 先解析XML文件中的内容，再进行实例化及加载
  * */
-public class ClassPathXmlApplicationContext implements BeanFactory ,ApplicationEventPublisher{
+public class ClassPathXmlApplicationContext implements BeanFactory,ApplicationEventPublisher{
     SimpleBeanFactory beanFactory;
     //context负责整合容器的启动过程，读外部配置，解析Bean定义，创建BeanFactory
     public ClassPathXmlApplicationContext(String fileName){

@@ -1,5 +1,8 @@
-package com.minis.beans;
+package com.minis.beans.factory.config;
 
+
+import com.minis.beans.ArgumentValues;
+import com.minis.beans.PropertyValues;
 
 public class BeanDefinition {
     /**

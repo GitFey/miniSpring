@@ -1,5 +1,8 @@
-package com.minis.beans;
+package com.minis.beans.factory.xml;
 
+import com.minis.beans.*;
+import com.minis.beans.factory.config.BeanDefinition;
+import com.minis.beans.factory.support.SimpleBeanFactory;
 import com.minis.core.Resource;
 import org.dom4j.Element;
 

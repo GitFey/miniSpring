@@ -1,4 +1,8 @@
-package com.minis.beans;
+package com.minis.beans.factory.support;
+
+import com.minis.beans.*;
+import com.minis.beans.factory.BeanFactory;
+import com.minis.beans.factory.config.BeanDefinition;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -13,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 2.beanNames，是一个字符串列表，存了所有bean的名字
  * 3.singletons，哈希表，key为bean的名字，value为bean实例
  * */
-public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements BeanFactory,BeanDefinitionRegistry{
+public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements BeanFactory, BeanDefinitionRegistry {
     private Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
     private List<String> beanDefinitionNames = new ArrayList<>();
     private final Map<String, Object> earlySingletonObjects = new HashMap<String, Object>(16);
