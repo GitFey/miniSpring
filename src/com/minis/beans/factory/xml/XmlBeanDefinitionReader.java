@@ -1,40 +1,43 @@
 package com.minis.beans.factory.xml;
 
-import com.minis.beans.*;
-import com.minis.beans.factory.config.BeanDefinition;
-import com.minis.beans.factory.support.SimpleBeanFactory;
-import com.minis.core.Resource;
-import org.dom4j.Element;
-
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 这里是将在ClassPathXmlResource中解析好的xml转换成bean
- * */
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+
+import com.minis.beans.PropertyValue;
+import com.minis.beans.PropertyValues;
+import com.minis.beans.factory.config.BeanDefinition;
+import com.minis.beans.factory.config.ConstructorArgumentValue;
+import com.minis.beans.factory.config.ConstructorArgumentValues;
+import com.minis.beans.factory.support.AbstractBeanFactory;
+import com.minis.core.Resource;
+
 public class XmlBeanDefinitionReader {
-    //原来实例域是BeanFactory，现在改成SimpleBeanFactory
-    SimpleBeanFactory simpleBeanFactory;
-
-    public XmlBeanDefinitionReader(SimpleBeanFactory simpleBeanFactory) {
-        this.simpleBeanFactory = simpleBeanFactory;
+    AbstractBeanFactory bf;
+    public XmlBeanDefinitionReader(AbstractBeanFactory bf) {
+        this.bf = bf;
     }
+    public void loadBeanDefinitions(Resource res) {
+        while (res.hasNext()) {
+            Element element = (Element)res.next();
+            String beanID=element.attributeValue("id");
+            String beanClassName=element.attributeValue("class");
+            String initMethodName=element.attributeValue("init-method");
 
-    public void loadBeanDefinitions(Resource resource) {
-        while (resource.hasNext()) {
-            Element element = (Element) resource.next();
-            String beanID = element.attributeValue("id");
-            String beanClassName = element.attributeValue("class");
-            BeanDefinition beanDefinition = new BeanDefinition(beanID, beanClassName);
+            BeanDefinition beanDefinition=new BeanDefinition(beanID,beanClassName);
 
             //get constructor
             List<Element> constructorElements = element.elements("constructor-arg");
-            ArgumentValues AVS = new ArgumentValues();
+            ConstructorArgumentValues AVS = new ConstructorArgumentValues();
             for (Element e : constructorElements) {
                 String pType = e.attributeValue("type");
                 String pName = e.attributeValue("name");
                 String pValue = e.attributeValue("value");
-                AVS.addArgumentValue(new ArgumentValue(pValue,pType,pName));
+                AVS.addArgumentValue(new ConstructorArgumentValue(pType,pName,pValue));
             }
             beanDefinition.setConstructorArgumentValues(AVS);
             //end of handle constructor
@@ -61,15 +64,16 @@ public class XmlBeanDefinitionReader {
                 PVS.addPropertyValue(new PropertyValue(pType, pName, pV, isRef));
             }
             beanDefinition.setPropertyValues(PVS);
-
             String[] refArray = refs.toArray(new String[0]);
             beanDefinition.setDependsOn(refArray);
             //end of handle properties
 
-            this.simpleBeanFactory.registerBeanDefinition(beanID,beanDefinition);
-            System.out.println(beanID + "创建成功 ！");
+            beanDefinition.setInitMethodName(initMethodName);
+
+            this.bf.registerBeanDefinition(beanID,beanDefinition);
         }
     }
+
 
 
 }
