@@ -6,7 +6,7 @@ import com.minis.context.ClassPathXmlApplicationContext;
 
 public class Test1 {
     public static void main(String[] args) throws BeansException {
-        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml");
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("annotationTest.xml");
         AService aService;
         try {
             aService = (AService)ctx.getBean("aservice");

@@ -23,7 +23,7 @@ public class BeanDefinition {
     /**
      * constructorArgumentValues 和 propertyValues ： 20230517实现依赖注入时新增
      */
-    private ArgumentValues constructorArgumentValues; //构造器参数列表
+    private ConstructorArgumentValues constructorArgumentValues; //构造器参数列表
     private PropertyValues propertyValues; //构造器属性列表
 
     public BeanDefinition(String id,String className){
@@ -71,12 +71,12 @@ public class BeanDefinition {
         return this.initMethodName;
     }
 
-    public void setConstructorArgumentValues(ArgumentValues constructorArgumentValues) {
+    public void setConstructorArgumentValues(ConstructorArgumentValues constructorArgumentValues) {
         this.constructorArgumentValues =
-                (constructorArgumentValues != null ? constructorArgumentValues : new ArgumentValues());
+                (constructorArgumentValues != null ? constructorArgumentValues : new ConstructorArgumentValues());
     }
 
-    public ArgumentValues getConstructorArgumentValues() {
+    public ConstructorArgumentValues getConstructorArgumentValues() {
         return this.constructorArgumentValues;
     }
 
