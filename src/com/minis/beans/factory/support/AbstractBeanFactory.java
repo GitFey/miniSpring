@@ -1,35 +1,30 @@
 package com.minis.beans.factory.support;
 
-import com.minis.beans.*;
+import com.minis.beans.BeansException;
+import com.minis.beans.PropertyValue;
+import com.minis.beans.PropertyValues;
 import com.minis.beans.factory.BeanFactory;
 import com.minis.beans.factory.config.BeanDefinition;
+import com.minis.beans.factory.config.ConstructorArgumentValue;
+import com.minis.beans.factory.config.ConstructorArgumentValues;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * 一个简单的bean工厂实现类，同样有注册和get两个功能
- *主要有三个实例域 ：
- * 1.beanDefinitions，是一个泛型列表，存了所有的bean的定义
- * 2.beanNames，是一个字符串列表，存了所有bean的名字
- * 3.singletons，哈希表，key为bean的名字，value为bean实例
- * */
-public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements BeanFactory, BeanDefinitionRegistry {
-    private Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
-    private List<String> beanDefinitionNames = new ArrayList<>();
+public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements BeanFactory,BeanDefinitionRegistry{
+    private Map<String,BeanDefinition> beanDefinitionMap=new ConcurrentHashMap<>(256);
+    private List<String> beanDefinitionNames=new ArrayList<>();
     private final Map<String, Object> earlySingletonObjects = new HashMap<String, Object>(16);
 
-    //beanName和singletons在父级定义了，这里就删掉了
-
-    public SimpleBeanFactory() {
+    public AbstractBeanFactory() {
     }
 
-    /**
-     * 更新方法，
-     */
     public void refresh() {
         for (String beanName : beanDefinitionNames) {
             try {
@@ -39,75 +34,81 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
             }
         }
     }
-    /**getBean ： 容器的核心方法
-     * 1.try to get bean
-     * 2.   if no bean : (1)get beanDefinition (2)createBean  (3)registerBean
-     * 3.return singleton bean
-     * @param beanName
-     * @return
-     * @throws BeansException
-     */
-    public Object getBean(String beanName) throws BeansException {
-        //先尝试直接拿bean实例
+
+    public Object getBean(String beanName) throws BeansException{
         Object singleton = this.getSingleton(beanName);
+
         if (singleton == null) {
             singleton = this.earlySingletonObjects.get(beanName);
-            //如果此时还没有这个bean的实例，则获取它的定义来创建实例
             if (singleton == null) {
-                //获取bean的定义
-                BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
-                singleton = createBean(beanDefinition);
-                //新注册这个bean实例
-                this.registerSingleton(beanName, singleton);
+                System.out.println("get bean null -------------- " + beanName);
+                BeanDefinition bd = beanDefinitionMap.get(beanName);
+                singleton=createBean(bd);
+                this.registerBean(beanName, singleton);
+
+                //beanpostprocessor
+                //step 1 : postProcessBeforeInitialization
+                applyBeanPostProcessorsBeforeInitialization(singleton, beanName);
+
+                //step 2 : init-method
+                if (bd.getInitMethodName() != null && !bd.getInitMethodName().equals("")) {
+                    invokeInitMethod(bd, singleton);
+                }
+
+                //step 3 : postProcessAfterInitialization
+                applyBeanPostProcessorsAfterInitialization(singleton, beanName);
             }
-            return singleton;
+
         }
-        if (singleton == null){
-            throw new BeansException("bean is null");
+        if (singleton == null) {
+            throw new BeansException("bean is null.");
         }
         return singleton;
-
     }
 
-    //接口新增方法，检查是否存在bean
+    private void invokeInitMethod(BeanDefinition bd, Object obj) {
+        Class<?> clz = obj.getClass();
+        Method method = null;
+        try {
+            method = clz.getMethod(bd.getInitMethodName());
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+        try {
+            method.invoke(obj);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public Boolean containsBean(String name) {
         return containsSingleton(name);
     }
 
-
-    public boolean isSingleton(String name) {
-        return this.beanDefinitionMap.get(name).isSingleton();
-    }
-
-
-    public boolean isPrototype(String name) {
-        return this.beanDefinitionMap.get(name).isPrototype();
-    }
-
-
-    public Class<?> getType(String name) {
-        return this.beanDefinitionMap.get(name).getClass();
-    }
-
-    /**
-     * 以下方法在拓展bean时新增
-     * @param name
-     * @param beanDefinition
-     */
-    @Override
-    public void registerBeanDefinition(String name, BeanDefinition beanDefinition) {
-        this.beanDefinitionMap.put(name, beanDefinition);
-        this.beanDefinitionNames.add(name);
-        if (!beanDefinition.isLazyInit()) {
-            try {
-                getBean(name);
-            } catch (BeansException e) {
-            }
-        }
-    }
     public void registerBean(String beanName, Object obj) {
         this.registerSingleton(beanName, obj);
 
+    }
+
+    @Override
+    public void registerBeanDefinition(String name, BeanDefinition bd) {
+        this.beanDefinitionMap.put(name,bd);
+        this.beanDefinitionNames.add(name);
+        if (!bd.isLazyInit()) {
+            try {
+                getBean(name);
+            } catch (BeansException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -115,6 +116,7 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
         this.beanDefinitionMap.remove(name);
         this.beanDefinitionNames.remove(name);
         this.removeSingleton(name);
+
     }
 
     @Override
@@ -127,17 +129,21 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
         return this.beanDefinitionMap.containsKey(name);
     }
 
+    @Override
+    public boolean isSingleton(String name) {
+        return this.beanDefinitionMap.get(name).isSingleton();
+    }
 
+    @Override
+    public boolean isPrototype(String name) {
+        return this.beanDefinitionMap.get(name).isPrototype();
+    }
 
+    @Override
+    public Class<?> getType(String name) {
+        return this.beanDefinitionMap.get(name).getClass();
+    }
 
-
-
-
-    /**
-     * creatBean ：1.doCreateBean()  2.handleProperties()
-     * @param bd
-     * @return
-     */
     private Object createBean(BeanDefinition bd) {
         Class<?> clz = null;
         Object obj = doCreateBean(bd);
@@ -150,7 +156,7 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
             e.printStackTrace();
         }
 
-        handleProperties(bd, clz, obj);
+        populateBean(bd, clz, obj);
 
         return obj;
     }
@@ -161,18 +167,15 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
         Constructor<?> con = null;
 
         try {
-            //class.forName : ask JVM find and load the class
             clz = Class.forName(bd.getClassName());
 
-            //handle constructor : argumentValues store in ArgumentValues
-            ArgumentValues argumentValues = bd.getConstructorArgumentValues();
+            //handle constructor
+            ConstructorArgumentValues argumentValues = bd.getConstructorArgumentValues();
             if (!argumentValues.isEmpty()) {
-                // new 2 lists （of types and values in ArgumentValues） by those size
                 Class<?>[] paramTypes = new Class<?>[argumentValues.getArgumentCount()];
                 Object[] paramValues =   new Object[argumentValues.getArgumentCount()];
-                //依次根据constructor中的类型和值来构造paramTypes与paramValues
                 for (int i=0; i<argumentValues.getArgumentCount(); i++) {
-                    ArgumentValue argumentValue = argumentValues.getIndexedArgumentValue(i);
+                    ConstructorArgumentValue argumentValue = argumentValues.getIndexedArgumentValue(i);
                     if ("String".equals(argumentValue.getType()) || "java.lang.String".equals(argumentValue.getType())) {
                         paramTypes[i] = String.class;
                         paramValues[i] = argumentValue.getValue();
@@ -190,7 +193,6 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
                         paramValues[i] = argumentValue.getValue();
                     }
                 }
-//                System.out.println(Arrays.toString(Arrays.stream(paramTypes).toArray()));
                 try {
                     con = clz.getConstructor(paramTypes);
                     obj = con.newInstance(paramValues);
@@ -220,6 +222,10 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
 
         return obj;
 
+    }
+
+    private void populateBean(BeanDefinition bd, Class<?> clz, Object obj) {
+        handleProperties(bd, clz, obj);
     }
 
     private void handleProperties(BeanDefinition bd, Class<?> clz, Object obj) {
@@ -287,13 +293,13 @@ public class SimpleBeanFactory  extends DefaultSingletonBeanRegistry implements 
 
             }
         }
+
     }
 
+    abstract public Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)
+            throws BeansException;
 
-    /**
-     * 注册,遗留方法
-     * */
-//    public void registerBeanDefinition(BeanDefinition beanDefinition) {
-//        this.beanDefinitions.put(beanDefinition.getId(), beanDefinition);
-//    }
+    abstract public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)
+            throws BeansException;
+
 }
