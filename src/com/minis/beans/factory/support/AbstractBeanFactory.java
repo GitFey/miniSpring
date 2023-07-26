@@ -36,11 +36,14 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
     }
 
     public Object getBean(String beanName) throws BeansException{
+        //先尝试直接从容器中获取bean实例
         Object singleton = this.getSingleton(beanName);
 
         if (singleton == null) {
+            //如果没有实例，则尝试从毛胚实例中获取
             singleton = this.earlySingletonObjects.get(beanName);
             if (singleton == null) {
+                //如果连毛胚都没有，则创建bean实例并注册
                 System.out.println("get bean null -------------- " + beanName);
                 BeanDefinition bd = beanDefinitionMap.get(beanName);
                 singleton=createBean(bd);
