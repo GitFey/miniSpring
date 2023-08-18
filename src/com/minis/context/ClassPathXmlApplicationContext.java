@@ -25,9 +25,13 @@ public class ClassPathXmlApplicationContext extends AbstractApplicationContext{
     }
 
     public ClassPathXmlApplicationContext(String fileName, boolean isRefresh){
+        //1.加载 XML 配置文件
         Resource res = new ClassPathXmlResource(fileName);
+        //2.创建一个 DefaultListableBeanFactory 实例
         DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+        //3.创建一个 XmlBeanDefinitionReader 实例，并传入 BeanFactory
         XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(bf);
+        // 4.使用 XmlBeanDefinitionReader 加载 Bean 定义到 BeanFactory
         reader.loadBeanDefinitions(res);
 
         this.beanFactory = bf;

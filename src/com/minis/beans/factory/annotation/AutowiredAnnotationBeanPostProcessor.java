@@ -29,6 +29,7 @@ public class AutowiredAnnotationBeanPostProcessor implements BeanPostProcessor {
         if(fields!=null){
             for(Field field : fields){
                 boolean isAutowired = field.isAnnotationPresent(Autowired.class);
+                //如果带有@Autowired注解
                 if(isAutowired){
                     String fieldName = field.getName();
                     //通过getBean() ，从bean工厂中获取对应的依赖对象

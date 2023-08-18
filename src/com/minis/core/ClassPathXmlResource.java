@@ -10,8 +10,8 @@ import java.util.Iterator;
  * 是外部配置信息的实现类，这里主要实现的是读取xml文件配置
  * 主要有三个实例域 ：
  *  1.document ：读取到的文件
- *  2.rootElement ：
- *  3.elementIterator ：
+ *  2.rootElement ：根元素
+ *  3.elementIterator ：子元素遍历器
  * */
 public class ClassPathXmlResource implements Resource{
     /**

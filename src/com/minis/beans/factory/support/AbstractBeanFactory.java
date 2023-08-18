@@ -17,6 +17,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 此类实现了循环依赖问题，体现在getBean(), createBean() 和 doCreateBean() 中。
+ * createBean() 方法中调用了一个 doCreateBean(bd) 方法，专门负责创建早期的毛胚实例。
+ * 毛胚实例创建好后会放在 earlySingletonObjects 结构中，然后 createBean() 方法再调用 handleProperties() 补齐这些 property 的值。
+ * 在 getBean() 方法中，首先要判断有没有已经创建好的 bean，
+ * -有的话直接取出来，如果没有就检查 earlySingletonObjects 中有没有相应的毛胚 Bean，
+ * -有的话直接取出来，没有的话就去创建，
+ * -并且会根据 Bean 之间的依赖关系把相关的 Bean 全部创建好。
+ */
 public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements BeanFactory,BeanDefinitionRegistry{
     protected Map<String,BeanDefinition> beanDefinitionMap=new ConcurrentHashMap<>(256);
     protected List<String> beanDefinitionNames=new ArrayList<>();
@@ -227,10 +236,27 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
 
     }
 
+    /**
+     * 给bean输入数据（注入依赖）
+     * @param bd
+     * @param clz
+     * @param obj
+     */
     private void populateBean(BeanDefinition bd, Class<?> clz, Object obj) {
         handleProperties(bd, clz, obj);
     }
 
+
+    /**
+     * 在完成依赖注入（Dependency Injection）的过程
+     * 将属性值设置到对象中，以构建完整的 Bean 对象。
+     * 如果属性不是引用，根据属性的类型设置参数类型 paramTypes，然后将值 pValue 设置到参数值数组 paramValues 中。
+     * 如果属性是引用，对 ref 所指向的另一个 Bean 再次调用 getBean() 方法，这个方法会获取到另一个 Bean 实例，这样就实现了另一个 Bean 的注入。
+     * 通过拼接属性名生成相应的 setter 方法名，然后使用反射获取这个方法，并通过反射调用该方法将属性值设置到目标对象 obj 中。
+     * @param bd
+     * @param clz
+     * @param obj
+     */
     private void handleProperties(BeanDefinition bd, Class<?> clz, Object obj) {
         //handle properties
         System.out.println("handle properties for bean : " + bd.getId());
@@ -244,6 +270,7 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
                 boolean isRef = propertyValue.getIsRef();
                 Class<?>[] paramTypes = new Class<?>[1];
                 Object[] paramValues =   new Object[1];
+                //非引用的情况
                 if (!isRef) {
                     if ("String".equals(pType) || "java.lang.String".equals(pType)) {
                         paramTypes[0] = String.class;
@@ -260,6 +287,7 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
 
                     paramValues[0] = pValue;
                 }
+                //是引用的情况
                 else { //is ref, create the dependent beans
                     try {
                         paramTypes[0] = Class.forName(pType);
@@ -272,11 +300,12 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
                         e.printStackTrace();
                     }
                 }
-
+                //通过拼接属性名生成相应的 setter 方法名
                 String methodName = "set" + pName.substring(0,1).toUpperCase() + pName.substring(1);
 
                 Method method = null;
                 try {
+                    //通过反射获取 setter 方法
                     method = clz.getMethod(methodName, paramTypes);
                 } catch (NoSuchMethodException e) {
                     e.printStackTrace();
@@ -284,6 +313,7 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
                     e.printStackTrace();
                 }
                 try {
+                    //执行方法，实现依赖注入
                     method.invoke(obj, paramValues);
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();

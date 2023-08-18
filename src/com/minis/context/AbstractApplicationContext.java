@@ -56,6 +56,17 @@ public abstract class AbstractApplicationContext implements ApplicationContext{
     }
 
 
+    /**
+     * 用于刷新 Spring 应用上下文的逻辑。
+     * 在 Spring 框架中，刷新应用上下文是指在容器初始化之后，进行一系列的准备和配置工作，以确保应用程序的各个组件都处于正确的状态。
+     * 首先是注册监听者，
+     * 接下来初始化事件发布者，
+     * 随后处理 Bean 以及对 Bean 的状态进行一些操作，
+     * 最后是将初始化完毕的 Bean 进行应用上下文刷新以及完成刷新后进行自定义操作。
+     * 因为这些方法都有 abstract 修饰，允许把这些步骤交给用户自定义处理，因此极大地增强了扩展性。
+     * @throws BeansException
+     * @throws IllegalStateException
+     */
     public void refresh() throws BeansException, IllegalStateException {
         postProcessBeanFactory(getBeanFactory());
 
