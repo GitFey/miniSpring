@@ -25,6 +25,7 @@ public class AutowiredAnnotationBeanPostProcessor implements BeanPostProcessor {
         Object result = bean;
 
         Class<?> clazz = result.getClass();
+        //Field 类型表示一个类的字段（成员变量）。
         Field[] fields = clazz.getDeclaredFields();
         if(fields!=null){
             for(Field field : fields){
@@ -38,6 +39,7 @@ public class AutowiredAnnotationBeanPostProcessor implements BeanPostProcessor {
                         //将字段设置为可访问，以便能够修改私有字段。
                         field.setAccessible(true);
                         //将依赖对象注入到字段中。
+                        //field.set(Object obj, Object value): 设置指定对象上的字段值。需要提供一个对象作为参数，如果字段是静态的，可以传递 null。
                         field.set(bean, autowiredObj);
                         //打印日志，表示成功进行了自动注入。
                         System.out.println("autowire " + fieldName + " for bean " + beanName);
