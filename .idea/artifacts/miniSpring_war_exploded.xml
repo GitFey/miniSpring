@@ -1,0 +1,17 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="miniSpring:war exploded">
+    <output-path>D:/tomcat/apache-tomcat-9.0.79/webapps/miniSpring</output-path>
+    <root id="root">
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="miniSpring" />
+          <element id="library" level="project" name="miniSpring" />
+        </element>
+        <element id="directory" name="lib">
+          <element id="library" level="project" name="Maven: dom4j:dom4j:1.1" />
+        </element>
+      </element>
+      <element id="javaee-facet-resources" facet="miniSpring/web/Web" />
+    </root>
+  </artifact>
+</component>
