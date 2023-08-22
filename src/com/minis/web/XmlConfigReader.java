@@ -6,6 +6,11 @@ import java.util.List;
 import java.util.Map;
 import org.dom4j.Element;
 
+/**
+ * XmlConfigReader
+ * 添加配置文件
+ */
+
 public class XmlConfigReader {
     public XmlConfigReader() {
     }
